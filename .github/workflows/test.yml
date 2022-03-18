@@ -34,6 +34,13 @@ jobs:
       - name: Test coverage with Gradle
         run: ./gradlew testCoverage
 
+      - name: "Check reports existence"
+        uses: andstor/file-existence-action@v1
+        with:
+          files: ${{ github.workspace }}/build/reports/jacoco/test/jacocoTestReport.xml
+
+        if: steps.check_files.outputs.files_exists == 'true'
+
       - name: JaCoCo Report
         uses: Madrapps/jacoco-report@v1.2
         with:
