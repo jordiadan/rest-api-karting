@@ -39,9 +39,8 @@ jobs:
         with:
           files: ${{ github.workspace }}/build/reports/jacoco/test/jacocoTestReport.xml
 
-        if: steps.check_files.outputs.files_exists == 'true'
-
       - name: JaCoCo Report
+        if: steps.check_files.outputs.files_exists == 'true'
         uses: Madrapps/jacoco-report@v1.2
         with:
           paths: ${{ github.workspace }}/build/reports/jacoco/test/jacocoTestReport.xml
