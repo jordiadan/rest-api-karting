@@ -106,7 +106,6 @@ tasks.jacocoTestReport {
         })
     )
 
-
     finalizedBy("jacocoTestCoverageVerification")
 }
 
