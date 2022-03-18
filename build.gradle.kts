@@ -6,6 +6,8 @@ plugins {
     id("io.gitlab.arturbosch.detekt") version "1.19.0"
     kotlin("jvm") version "1.6.10"
     kotlin("plugin.spring") version "1.6.10"
+    id("com.adarshr.test-logger") version "3.2.0"
+    jacoco
 }
 
 group = "[[ group_name ]]"
@@ -84,4 +86,88 @@ tasks {
         }
         shouldRunAfter(test)
     }
+}
+
+tasks.jacocoTestReport {
+    reports {
+        // turn off/on reports
+        html.required.set(true)
+        xml.required.set(true)
+        csv.required.set(false)
+    }
+
+    classDirectories.setFrom(
+        files(classDirectories.files.map {
+            fileTree(it) {
+                exclude(
+                    "**/configuration/**", "**/Application*"
+                )
+            }
+        })
+    )
+
+    finalizedBy("jacocoTestCoverageVerification")
+}
+
+tasks.jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+
+            limit {
+                // default 'COVEREDRATIO'
+                minimum = "0.30".toBigDecimal()
+            }
+        }
+
+        rule {
+            // enable rule
+            enabled = true
+
+            // check rule by classes
+            element = "CLASS"
+
+            // should satisfy branch coverage at least 90%
+            limit {
+                counter = "BRANCH"
+                value = "COVEREDRATIO"
+                minimum = "0.90".toBigDecimal()
+            }
+
+            // should satisfy line coverage at least 90%
+            limit {
+                counter = "LINE"
+                value = "COVEREDRATIO"
+                minimum = "0.80".toBigDecimal()
+            }
+
+            // limit line counts: 200
+            limit {
+                counter = "LINE"
+                value = "TOTALCOUNT"
+                maximum = "200".toBigDecimal()
+            }
+
+            // excludes some classes or package
+            excludes = listOf(
+                "com.example.karting.ApplicationKt",
+                "*.configuration.*",
+                "*.test.*",
+                "*.Kotlin*"
+            )
+        }
+    }
+}
+
+val testCoverage by tasks.registering {
+    group = "verification"
+    description = "Runs the unit tests with coverage"
+
+    dependsOn(
+        ":check",
+        ":jacocoTestReport",
+        ":jacocoTestCoverageVerification"
+    )
+
+    tasks["jacocoTestReport"].mustRunAfter(tasks["check"])
+    tasks["jacocoTestCoverageVerification"].mustRunAfter(tasks["jacocoTestReport"])
 }
